@@ -15,17 +15,29 @@ public:
     User(string uname, string pwd);
 };
 
+// Constructor for User
+User::User(string uname, string pwd) : username(uname), password(pwd), isLoggedIn(false) {}
+
 // Derived NormalUser Class
 class NormalUser : public User {
 public:
     NormalUser(string uname, string pwd);
 };
 
+// Constructor for NormalUser
+NormalUser::NormalUser(string uname, string pwd) : User(uname, pwd) {}
+
 // Derived Admin Class
 class Admin : public User {
+private:
+    string adminKey;
+
 public:
-    Admin(string uname, string pwd);
+    Admin(string uname, string pwd, string AdminKey);
 };
+
+// Constructor for Admin
+Admin::Admin(string uname, string pwd, string AdminKey) : User(uname, pwd), adminKey(AdminKey) {}
 
 // Message Class
 class Message {
@@ -39,6 +51,10 @@ public:
     Message(string sndr, string rcvr, string cntnt);
 };
 
+// Constructor for Message
+Message::Message(string sndr, string rcvr, string cntnt)
+    : sender(sndr), receiver(rcvr), content(cntnt), timestamp(time(0)) {}
+
 // ChatHistory Class
 class ChatHistory {
 private:
@@ -47,6 +63,9 @@ private:
 public:
     ChatHistory();
 };
+
+// Constructor for ChatHistory
+ChatHistory::ChatHistory() {}
 
 // ChatApp Class
 class ChatApp {
@@ -59,8 +78,9 @@ public:
     ChatApp();
 };
 
+// Constructor for ChatApp
+ChatApp::ChatApp() : currentUser(nullptr) {}
 
 int main() {
     return 0;
 }
-
