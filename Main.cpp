@@ -223,6 +223,19 @@ void ChatApp::showChatHistory(const string &user1, const string &user2) const
 
 int main()
 {
+    ChatApp app;
+    app.registerUser("user1", "password1", false);
+    app.registerUser("user12", "password2", false);
+
+    if (app.loginUser("user1", "password1"))
+    {
+        cout << "User1 logged in successfully." << endl;
+        app.sendMessage("user12", "Hello 12");
+    }
+    else
+    {
+        cout << "User1 login failed." << endl;
+    }
 
     return 0;
 }
