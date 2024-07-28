@@ -14,25 +14,13 @@ protected:
 
 public:
     User(string uname, string pwd);
-    virtual ~User(); // Added virtual destructor
     bool login(string pwd);
     void logout();
-    string getUsername() const; // Added getter for username
+    string getUsername() const;
 };
 
 // Constructor for User
 User::User(string uname, string pwd) : username(uname), password(pwd), isLoggedIn(false) {}
-
-User::~User() {} // Definition for virtual destructor
-bool User::login(string pwd)
-{
-    if (pwd == this->password)
-    {
-        this->isLoggedIn = true;
-        return true;
-    }
-    return false;
-}
 
 void User::logout()
 {
@@ -44,6 +32,9 @@ string User::getUsername() const
     return username;
 }
 
+
+
+
 // Derived NormalUser Class
 class NormalUser : public User
 {
@@ -53,6 +44,8 @@ public:
 
 // Constructor for NormalUser
 NormalUser::NormalUser(string uname, string pwd) : User(uname, pwd) {}
+
+
 
 // Derived Admin Class
 class Admin : public User
@@ -67,6 +60,10 @@ public:
 // Constructor for Admin
 Admin::Admin(string uname, string pwd, string AdminKey) : User(uname, pwd), adminKey(AdminKey) {}
 
+
+
+
+
 // Message Class
 class Message
 {
@@ -74,18 +71,16 @@ private:
     string sender;
     string receiver;
     string content;
-    time_t timestamp;
 
 public:
     Message(string sndr, string rcvr, string cntnt);
     string getSender() const;
     string getReceiver() const;
     string getContent() const;
-    time_t getTimestamp() const;
 };
 
 // Constructor for Message
-Message::Message(string sndr, string rcvr, string cntnt) : sender(sndr), receiver(rcvr), content(cntnt), timestamp(time(0)) {}
+Message::Message(string sndr, string rcvr, string cntnt) : sender(sndr), receiver(rcvr), content(cntnt) {}
 
 string Message::getSender() const
 {
@@ -102,11 +97,6 @@ string Message::getContent() const
     return content;
 }
 
-time_t Message::getTimestamp() const
-{
-    return timestamp;
-}
-
 // ChatHistory Class
 class ChatHistory
 {
@@ -116,7 +106,7 @@ private:
 public:
     ChatHistory();
     void addMessage(const Message &message);
-    void showMessages(const string &user1, const string &user2) const;
+    // void showMessages(const string &user1, const string &user2) const;
 };
 
 // Constructor for ChatHistory
@@ -133,54 +123,36 @@ class ChatApp
 {
 private:
     vector<User *> users;
-    ChatHistory chatHistory; // Private member
     User *currentUser;
 
 public:
+    ChatHistory chatHistory;
     ChatApp();
-    ~ChatApp();
     void registerUser(string uname, string pwd, bool isAdmin, string adminKey = "");
-    bool loginUser(string uname, string pwd);
+    // bool loginUser(string uname, string pwd);
     void logoutUser();
-    User *findUserByUsername(const string &uname);
-    void sendMessage(const string &receiver, const string &content);
-    void showChatHistory(const string &user1, const string &user2) const; // Public method to access chatHistory
+    // User *findUserByUsername(const string &uname);
+    // void sendMessage(const string &receiver, const string &content);
+    // void showChatHistory(const string &user1, const string &user2) const; // Public method to access chatHistory
 };
 
 // Constructor for ChatApp
 ChatApp::ChatApp() : currentUser(nullptr) {}
 
-// Destructor for ChatApp to clean up allocated memory
-ChatApp::~ChatApp()
-{
-    for (auto user : users)
-    {
-        delete user;
-    }
-}
 
 void ChatApp::registerUser(string uname, string pwd, bool isAdmin, string adminKey)
 {
-    if (isAdmin)
+    if (adminKey == "heybadrinath")
     {
         users.push_back(new Admin(uname, pwd, adminKey));
     }
     else
     {
         users.push_back(new NormalUser(uname, pwd));
+        cout << "register user" << uname << pwd << adminKey;
     }
 }
 
-bool ChatApp::loginUser(string uname, string pwd)
-{
-    User *user = findUserByUsername(uname);
-    if (user && user->login(pwd))
-    {
-        currentUser = user;
-        return true;
-    }
-    return false;
-}
 
 void ChatApp::logoutUser()
 {
@@ -191,51 +163,14 @@ void ChatApp::logoutUser()
     }
 }
 
-User *ChatApp::findUserByUsername(const string &uname)
-{
-    for (auto user : users)
-    {
-        if (user->getUsername() == uname)
-        {
-            return user;
-        }
-    }
-    return nullptr;
-}
 
-void ChatApp::sendMessage(const string &receiver, const string &content)
-{
-    if (currentUser)
-    {
-        User *receiverUser = findUserByUsername(receiver);
-        if (receiverUser)
-        {
-            Message message(currentUser->getUsername(), receiver, content);
-            chatHistory.addMessage(message);
-        }
-    }
-}
 
-void ChatApp::showChatHistory(const string &user1, const string &user2) const
-{
-    chatHistory.showMessages(user1, user2);
-}
 
 int main()
 {
     ChatApp app;
-    app.registerUser("user1", "password1", false);
-    app.registerUser("user12", "password2", false);
-
-    if (app.loginUser("user1", "password1"))
-    {
-        cout << "User1 logged in successfully." << endl;
-        app.sendMessage("user12", "Hello 12");
-    }
-    else
-    {
-        cout << "User1 login failed." << endl;
-    }
+    
+    app.registerUser("badri", "badriPass",true,"heybadrinath");
 
     return 0;
 }
