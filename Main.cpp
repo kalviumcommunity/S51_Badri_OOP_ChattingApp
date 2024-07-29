@@ -2,6 +2,7 @@
 #include <vector>
 #include <string>
 #include <ctime>
+#include <algorithm>
 using namespace std;
 
 // Base User Class
@@ -14,14 +15,16 @@ protected:
 
 public:
     User(string uname, string pwd);
+    virtual ~User();
     bool login(string pwd);
     void logout();
     string getUsername() const;
+    bool isLoggedInStatus() const;
 };
 
 // Constructor for User
 User::User(string uname, string pwd) : username(uname), password(pwd), isLoggedIn(false) {}
-
+User::~User() {}
 bool User::login(string pwd)
 {
     if (this->password == pwd)
@@ -42,6 +45,11 @@ string User::getUsername() const
     return this->username;
 }
 
+bool User::isLoggedInStatus() const
+{
+    return isLoggedIn;
+}
+
 // Derived NormalUser Class
 class NormalUser : public User
 {
@@ -60,11 +68,27 @@ private:
 
 public:
     Admin(string uname, string pwd, string AdminKey);
+    void viewAllUsers(const vector<User *> &users) const;
+    void deleteUser(vector<User *> &users, const string &username); // Delete a user
 };
 
 // Constructor for Admin
 Admin::Admin(string uname, string pwd, string AdminKey) : User(uname, pwd), adminKey(AdminKey) {}
 
+void Admin::viewAllUsers(const vector<User *> &users) const
+{
+    for (const auto &user : users)
+    {
+        cout << "Username: " << user->getUsername() << ", Logged In: " << (user->isLoggedInStatus() ? "Yes" : "No") << endl;
+    }
+}
+
+void Admin::deleteUser(vector<User *> &users, const string &username)
+{
+    users.erase(remove_if(users.begin(), users.end(), [&](User *user)
+                          { return user->getUsername() == username; }),
+                users.end());
+}
 // Message Class
 class Message
 {
@@ -134,16 +158,29 @@ private:
 public:
     ChatHistory chatHistory;
     ChatApp();
+    ~ChatApp(); // Destructor to free memory
     void registerUser(string uname, string pwd, bool isAdmin, string adminKey = "");
     bool loginUser(string uname, string pwd);
     void logoutUser();
     User *findUserByUsername(const string &uname);
     void sendMessage(const string &receiver, const string &content);
     void showChatHistory(const string &user1, const string &user2) const;
+    void printUsers() const; // New method to print user details
+    void deleteUser(const string &uname);
+    void viewAllUsers() const;
 };
 
 // Constructor for ChatApp
 ChatApp::ChatApp() : currentUser(nullptr) {}
+
+// Destructor for ChatApp
+ChatApp::~ChatApp()
+{
+    for (User *user : users)
+    {
+        delete user; // Free the memory allocated for each user
+    }
+}
 
 void ChatApp::registerUser(string uname, string pwd, bool isAdmin, string adminKey)
 {
@@ -174,7 +211,7 @@ void ChatApp::logoutUser()
     {
         this->currentUser->logout();
         this->currentUser = nullptr;
-        cout << "user logged out" << endl;
+        cout << "User logged out" << endl;
     }
 }
 
@@ -214,13 +251,70 @@ void ChatApp::showChatHistory(const string &user1, const string &user2) const
     }
 }
 
+void ChatApp::deleteUser(const string &uname)
+{
+    if (currentUser)
+    {
+        Admin *admin = dynamic_cast<Admin *>(currentUser);
+        if (admin)
+        {
+            admin->deleteUser(users, uname);
+            cout << "Deleted User-" << uname << endl;
+        }
+        else
+        {
+            cout << "Only admin can delete users." << endl;
+        }
+    }
+    else
+    {
+        cout << "No user is logged in." << endl;
+    }
+}
+
+void ChatApp::viewAllUsers() const
+{
+    if (currentUser)
+    {
+        Admin *admin = dynamic_cast<Admin *>(currentUser);
+        if (admin)
+        {
+            admin->viewAllUsers(users);
+        }
+        else
+        {
+            cout << "Only admin can view all users." << endl;
+        }
+    }
+    else
+    {
+        cout << "No user is logged in." << endl;
+    }
+}
+
+void ChatApp::printUsers() const
+{
+    cout << "Registered Users: " << endl;
+    for (const auto &user : users)
+    {
+        cout << "- " << user->getUsername() << endl;
+    }
+    cout << endl;
+}
+
 int main()
 {
     ChatApp app;
 
+    cout << "Registering users..." << endl;
     app.registerUser("badri", "badriPass", true, "heybadrinath");
     app.registerUser("alice", "alicePass", false);
+    app.registerUser("bob", "bobPass", false);
 
+    // Print users after registration
+    app.printUsers();
+
+    cout << "Logging in user 'badri'..." << endl;
     if (app.loginUser("badri", "badriPass"))
     {
         cout << "User 'badri' logged in successfully." << endl;
@@ -231,11 +325,16 @@ int main()
     }
 
     app.sendMessage("alice", "Hello, Alice!");
+    app.sendMessage("bob", "Hello, Bob!");
 
     app.showChatHistory("badri", "alice");
+    app.showChatHistory("badri", "bob");
+
+    app.deleteUser("bob");
 
     app.logoutUser();
 
+    cout << "Logging in user 'alice'..." << endl;
     if (app.loginUser("alice", "alicePass"))
     {
         cout << "User 'alice' logged in successfully." << endl;
