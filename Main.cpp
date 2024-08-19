@@ -55,6 +55,7 @@ class NormalUser : public User
 {
 public:
     NormalUser(string uname, string pwd);
+    virtual ~NormalUser() {}
 };
 
 // Constructor for NormalUser
@@ -68,6 +69,7 @@ private:
 
 public:
     Admin(string uname, string pwd, string AdminKey);
+    virtual ~Admin() {}
     void viewAllUsers(const vector<User *> &users) const;
     void deleteUser(vector<User *> &users, const string &username); // Delete a user
 };
@@ -85,10 +87,17 @@ void Admin::viewAllUsers(const vector<User *> &users) const
 
 void Admin::deleteUser(vector<User *> &users, const string &username)
 {
-    users.erase(remove_if(users.begin(), users.end(), [&](User *user)
-                          { return user->getUsername() == username; }),
-                users.end());
+    auto it = remove_if(users.begin(), users.end(), [&](User *user)
+                        {
+                            if (user->getUsername() == username) {
+                                delete user; // Free memory
+                                return true;
+                            }
+                            return false;
+                        });
+    users.erase(it, users.end());
 }
+
 // Message Class
 class Message
 {
@@ -159,7 +168,7 @@ public:
     ChatHistory chatHistory;
     ChatApp();
     ~ChatApp(); // Destructor to free memory
-    void registerUser(string uname, string pwd, bool isAdmin, string adminKey = "");
+    void registerUser(User *user);
     bool loginUser(string uname, string pwd);
     void logoutUser();
     User *findUserByUsername(const string &uname);
@@ -182,16 +191,9 @@ ChatApp::~ChatApp()
     }
 }
 
-void ChatApp::registerUser(string uname, string pwd, bool isAdmin, string adminKey)
+void ChatApp::registerUser(User *user)
 {
-    if (isAdmin && adminKey == "heybadrinath")
-    {
-        this->users.push_back(new Admin(uname, pwd, adminKey));
-    }
-    else
-    {
-        this->users.push_back(new NormalUser(uname, pwd));
-    }
+    this->users.push_back(user);
 }
 
 bool ChatApp::loginUser(string uname, string pwd)
@@ -307,9 +309,9 @@ int main()
     ChatApp app;
 
     cout << "Registering users..." << endl;
-    app.registerUser("badri", "badriPass", true, "heybadrinath");
-    app.registerUser("alice", "alicePass", false);
-    app.registerUser("bob", "bobPass", false);
+    app.registerUser(new Admin("badri", "badriPass", "heybadrinath"));
+    app.registerUser(new NormalUser("alice", "alicePass"));
+    app.registerUser(new NormalUser("bob", "bobPass"));
 
     // Print users after registration
     app.printUsers();
@@ -331,7 +333,7 @@ int main()
     app.showChatHistory("badri", "bob");
 
     app.deleteUser("bob");
-
+    app.viewAllUsers();
     app.logoutUser();
 
     cout << "Logging in user 'alice'..." << endl;
