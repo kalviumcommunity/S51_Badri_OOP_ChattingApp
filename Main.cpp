@@ -14,6 +14,7 @@ protected:
     bool isLoggedIn;
 
 public:
+    static int userCount; // Static variable to track number of users
     User(string uname, string pwd);
     virtual ~User();
     bool login(string pwd);
@@ -22,8 +23,15 @@ public:
     bool isLoggedInStatus() const;
 };
 
+// Initialize static variable
+int User::userCount = 0;
+
 // Constructor for User
-User::User(string uname, string pwd) : username(uname), password(pwd), isLoggedIn(false) {}
+User::User(string uname, string pwd) : username(uname), password(pwd), isLoggedIn(false)
+{
+    userCount++; // Increment user count whenever a new user is created
+}
+
 User::~User() {}
 bool User::login(string pwd)
 {
@@ -91,6 +99,7 @@ void Admin::deleteUser(vector<User *> &users, const string &username)
                         {
                             if (user->getUsername() == username) {
                                 delete user; // Free memory
+                                userCount--; // Decrement user count when a user is deleted
                                 return true;
                             }
                             return false;
@@ -107,14 +116,21 @@ private:
     string content;
 
 public:
+    static int totalMessages; // Static variable to track total number of messages
     Message(string sndr, string rcvr, string cntnt);
     string getSender() const;
     string getReceiver() const;
     string getContent() const;
 };
 
+// Initialize static variable
+int Message::totalMessages = 0;
+
 // Constructor for Message
-Message::Message(string sndr, string rcvr, string cntnt) : sender(sndr), receiver(rcvr), content(cntnt) {}
+Message::Message(string sndr, string rcvr, string cntnt) : sender(sndr), receiver(rcvr), content(cntnt)
+{
+    totalMessages++; // Increment message count whenever a new message is created
+}
 
 string Message::getSender() const
 {
@@ -301,6 +317,8 @@ void ChatApp::printUsers() const
     {
         cout << "- " << user->getUsername() << endl;
     }
+    cout << "Total Users: " << User::userCount << endl; // Display total users
+    cout << "Total Messages Sent: " << Message::totalMessages << endl; // Display total messages
     cout << endl;
 }
 
@@ -315,6 +333,12 @@ int main()
 
     // Print users after registration
     app.printUsers();
+
+    // Display static variables directly
+    cout << "Public Static Variables:" << endl;
+    cout << "Total Users (User::userCount): " << User::userCount << endl;
+    cout << "Total Messages (Message::totalMessages): " << Message::totalMessages << endl;
+    cout << endl;
 
     cout << "Logging in user 'badri'..." << endl;
     if (app.loginUser("badri", "badriPass"))
@@ -336,19 +360,14 @@ int main()
     app.viewAllUsers();
     app.logoutUser();
 
-    cout << "Logging in user 'alice'..." << endl;
-    if (app.loginUser("alice", "alicePass"))
-    {
-        cout << "User 'alice' logged in successfully." << endl;
-    }
-    else
-    {
-        cout << "Failed to log in user 'alice'." << endl;
-    }
+    // Print users after deletion
+    app.printUsers();
 
-    app.showChatHistory("alice", "badri");
-
-    app.logoutUser();
+    // Display static variables directly after actions
+    cout << "Public Static Variables after actions:" << endl;
+    cout << "Total Users (User::userCount): " << User::userCount << endl;
+    cout << "Total Messages (Message::totalMessages): " << Message::totalMessages << endl;
+    cout << endl;
 
     return 0;
 }
