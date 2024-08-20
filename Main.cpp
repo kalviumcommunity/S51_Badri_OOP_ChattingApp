@@ -1,7 +1,6 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <ctime>
 #include <algorithm>
 using namespace std;
 
@@ -21,6 +20,7 @@ public:
     void logout();
     string getUsername() const;
     bool isLoggedInStatus() const;
+    static int getUserCount(); // Static member function to get user count
 };
 
 // Initialize static variable
@@ -56,6 +56,12 @@ string User::getUsername() const
 bool User::isLoggedInStatus() const
 {
     return isLoggedIn;
+}
+
+// Static member function to get user count
+int User::getUserCount()
+{
+    return userCount;
 }
 
 // Derived NormalUser Class
@@ -121,6 +127,7 @@ public:
     string getSender() const;
     string getReceiver() const;
     string getContent() const;
+    static int getTotalMessages(); // Static member function to get total messages count
 };
 
 // Initialize static variable
@@ -145,6 +152,12 @@ string Message::getReceiver() const
 string Message::getContent() const
 {
     return this->content;
+}
+
+// Static member function to get total messages count
+int Message::getTotalMessages()
+{
+    return totalMessages;
 }
 
 // ChatHistory Class
@@ -317,8 +330,8 @@ void ChatApp::printUsers() const
     {
         cout << "- " << user->getUsername() << endl;
     }
-    cout << "Total Users: " << User::userCount << endl; // Display total users
-    cout << "Total Messages Sent: " << Message::totalMessages << endl; // Display total messages
+    cout << "Total Users: " << User::getUserCount() << endl; // Display total users using static member function
+    cout << "Total Messages Sent: " << Message::getTotalMessages() << endl; // Display total messages using static member function
     cout << endl;
 }
 
@@ -334,10 +347,10 @@ int main()
     // Print users after registration
     app.printUsers();
 
-    // Display static variables directly
+    // Display static variables directly using static member functions
     cout << "Public Static Variables:" << endl;
-    cout << "Total Users (User::userCount): " << User::userCount << endl;
-    cout << "Total Messages (Message::totalMessages): " << Message::totalMessages << endl;
+    cout << "Total Users (User::getUserCount()): " << User::getUserCount() << endl;
+    cout << "Total Messages (Message::getTotalMessages()): " << Message::getTotalMessages() << endl;
     cout << endl;
 
     cout << "Logging in user 'badri'..." << endl;
@@ -363,10 +376,10 @@ int main()
     // Print users after deletion
     app.printUsers();
 
-    // Display static variables directly after actions
+    // Display static variables directly after actions using static member functions
     cout << "Public Static Variables after actions:" << endl;
-    cout << "Total Users (User::userCount): " << User::userCount << endl;
-    cout << "Total Messages (Message::totalMessages): " << Message::totalMessages << endl;
+    cout << "Total Users (User::getUserCount()): " << User::getUserCount() << endl;
+    cout << "Total Messages (Message::getTotalMessages()): " << Message::getTotalMessages() << endl;
     cout << endl;
 
     return 0;
