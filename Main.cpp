@@ -19,6 +19,8 @@ public:
     bool login(string pwd);
     void logout();
     string getUsername() const;
+    void setUsername(const string &uname); // Added setter
+    void setPassword(const string &pwd);   // Added setter
     bool isLoggedInStatus() const;
     static int getUserCount(); // Static member function to get user count
 };
@@ -51,6 +53,18 @@ void User::logout()
 string User::getUsername() const
 {
     return this->username;
+}
+
+// Setter for username
+void User::setUsername(const string &uname)
+{
+    this->username = uname;
+}
+
+// Setter for password
+void User::setPassword(const string &pwd)
+{
+    this->password = pwd;
 }
 
 bool User::isLoggedInStatus() const
@@ -125,8 +139,11 @@ public:
     static int totalMessages; // Static variable to track total number of messages
     Message(string sndr, string rcvr, string cntnt);
     string getSender() const;
+    void setSender(const string &sndr);     // Added setter
     string getReceiver() const;
+    void setReceiver(const string &rcvr);   // Added setter
     string getContent() const;
+    void setContent(const string &cntnt);   // Added setter
     static int getTotalMessages(); // Static member function to get total messages count
 };
 
@@ -144,14 +161,32 @@ string Message::getSender() const
     return this->sender;
 }
 
+// Setter for sender
+void Message::setSender(const string &sndr)
+{
+    this->sender = sndr;
+}
+
 string Message::getReceiver() const
 {
     return this->receiver;
 }
 
+// Setter for receiver
+void Message::setReceiver(const string &rcvr)
+{
+    this->receiver = rcvr;
+}
+
 string Message::getContent() const
 {
     return this->content;
+}
+
+// Setter for content
+void Message::setContent(const string &cntnt)
+{
+    this->content = cntnt;
 }
 
 // Static member function to get total messages count
@@ -337,50 +372,55 @@ void ChatApp::printUsers() const
 
 int main()
 {
-    ChatApp app;
+    ChatApp chatApp;
 
-    cout << "Registering users..." << endl;
-    app.registerUser(new Admin("badri", "badriPass", "heybadrinath"));
-    app.registerUser(new NormalUser("alice", "alicePass"));
-    app.registerUser(new NormalUser("bob", "bobPass"));
+    // Create Admin and Normal Users
+    User *admin = new Admin("admin", "adminpass", "adminkey123");
+    User *user1 = new NormalUser("user1", "password1");
+    User *user2 = new NormalUser("user2", "password2");
 
-    // Print users after registration
-    app.printUsers();
+    // Register Users
+    chatApp.registerUser(admin);
+    chatApp.registerUser(user1);
+    chatApp.registerUser(user2);
 
-    // Display static variables directly using static member functions
-    cout << "Public Static Variables:" << endl;
-    cout << "Total Users (User::getUserCount()): " << User::getUserCount() << endl;
-    cout << "Total Messages (Message::getTotalMessages()): " << Message::getTotalMessages() << endl;
-    cout << endl;
+    // Print initial user info
+    chatApp.printUsers();
 
-    cout << "Logging in user 'badri'..." << endl;
-    if (app.loginUser("badri", "badriPass"))
+    // Admin logs in and views all users
+    if (chatApp.loginUser("admin", "adminpass"))
     {
-        cout << "User 'badri' logged in successfully." << endl;
-    }
-    else
-    {
-        cout << "Failed to log in user 'badri'." << endl;
+        chatApp.viewAllUsers();
+        chatApp.logoutUser();
     }
 
-    app.sendMessage("alice", "Hello, Alice!");
-    app.sendMessage("bob", "Hello, Bob!");
+    // User1 logs in and sends a message to User2
+    if (chatApp.loginUser("user1", "password1"))
+    {
+        chatApp.sendMessage("user2", "Hello, User2!");
+        chatApp.logoutUser();
+    }
 
-    app.showChatHistory("badri", "alice");
-    app.showChatHistory("badri", "bob");
+    // User2 logs in and sends a message back to User1
+    if (chatApp.loginUser("user2", "password2"))
+    {
+        chatApp.sendMessage("user1", "Hi, User1! How are you?");
+        chatApp.logoutUser();
+    }
 
-    app.deleteUser("bob");
-    app.viewAllUsers();
-    app.logoutUser();
+    // Show chat history between User1 and User2
+    chatApp.showChatHistory("user1", "user2");
 
-    // Print users after deletion
-    app.printUsers();
+    // Admin logs in and deletes User1
+    if (chatApp.loginUser("admin", "adminpass"))
+    {
+        chatApp.deleteUser("user1");
+        chatApp.viewAllUsers();
+        chatApp.logoutUser();
+    }
 
-    // Display static variables directly after actions using static member functions
-    cout << "Public Static Variables after actions:" << endl;
-    cout << "Total Users (User::getUserCount()): " << User::getUserCount() << endl;
-    cout << "Total Messages (Message::getTotalMessages()): " << Message::getTotalMessages() << endl;
-    cout << endl;
+    // Final user and message statistics
+    chatApp.printUsers();
 
     return 0;
 }
