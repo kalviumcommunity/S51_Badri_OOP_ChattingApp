@@ -14,13 +14,12 @@ protected:
 
 public:
     static int userCount; // Static variable to track number of users
+    User(); // Default constructor
     User(string uname, string pwd);
-    virtual ~User();
+    ~User();
     bool login(string pwd);
     void logout();
     string getUsername() const;
-    void setUsername(const string &uname); // Added setter
-    void setPassword(const string &pwd);   // Added setter
     bool isLoggedInStatus() const;
     static int getUserCount(); // Static member function to get user count
 };
@@ -28,7 +27,13 @@ public:
 // Initialize static variable
 int User::userCount = 0;
 
-// Constructor for User
+// Default constructor for User
+User::User() : username(""), password(""), isLoggedIn(false)
+{
+    userCount++; // Increment user count whenever a new user is created
+}
+
+// Constructor for User with parameters
 User::User(string uname, string pwd) : username(uname), password(pwd), isLoggedIn(false)
 {
     userCount++; // Increment user count whenever a new user is created
@@ -55,18 +60,6 @@ string User::getUsername() const
     return this->username;
 }
 
-// Setter for username
-void User::setUsername(const string &uname)
-{
-    this->username = uname;
-}
-
-// Setter for password
-void User::setPassword(const string &pwd)
-{
-    this->password = pwd;
-}
-
 bool User::isLoggedInStatus() const
 {
     return isLoggedIn;
@@ -82,11 +75,15 @@ int User::getUserCount()
 class NormalUser : public User
 {
 public:
+    NormalUser(); // Default constructor
     NormalUser(string uname, string pwd);
-    virtual ~NormalUser() {}
+    ~NormalUser() {}
 };
 
-// Constructor for NormalUser
+// Default constructor for NormalUser
+NormalUser::NormalUser() : User() {}
+
+// Constructor for NormalUser with parameters
 NormalUser::NormalUser(string uname, string pwd) : User(uname, pwd) {}
 
 // Derived Admin Class
@@ -96,13 +93,17 @@ private:
     string adminKey;
 
 public:
+    Admin(); // Default constructor
     Admin(string uname, string pwd, string AdminKey);
-    virtual ~Admin() {}
+    ~Admin() {}
     void viewAllUsers(const vector<User *> &users) const;
     void deleteUser(vector<User *> &users, const string &username); // Delete a user
 };
 
-// Constructor for Admin
+// Default constructor for Admin
+Admin::Admin() : User(), adminKey("") {}
+
+// Constructor for Admin with parameters
 Admin::Admin(string uname, string pwd, string AdminKey) : User(uname, pwd), adminKey(AdminKey) {}
 
 void Admin::viewAllUsers(const vector<User *> &users) const
@@ -137,20 +138,21 @@ private:
 
 public:
     static int totalMessages; // Static variable to track total number of messages
+    Message(); // Default constructor
     Message(string sndr, string rcvr, string cntnt);
     string getSender() const;
-    void setSender(const string &sndr);     // Added setter
     string getReceiver() const;
-    void setReceiver(const string &rcvr);   // Added setter
     string getContent() const;
-    void setContent(const string &cntnt);   // Added setter
     static int getTotalMessages(); // Static member function to get total messages count
 };
 
 // Initialize static variable
 int Message::totalMessages = 0;
 
-// Constructor for Message
+// Default constructor for Message
+Message::Message() : sender(""), receiver(""), content("") {}
+
+// Constructor for Message with parameters
 Message::Message(string sndr, string rcvr, string cntnt) : sender(sndr), receiver(rcvr), content(cntnt)
 {
     totalMessages++; // Increment message count whenever a new message is created
@@ -161,32 +163,14 @@ string Message::getSender() const
     return this->sender;
 }
 
-// Setter for sender
-void Message::setSender(const string &sndr)
-{
-    this->sender = sndr;
-}
-
 string Message::getReceiver() const
 {
     return this->receiver;
 }
 
-// Setter for receiver
-void Message::setReceiver(const string &rcvr)
-{
-    this->receiver = rcvr;
-}
-
 string Message::getContent() const
 {
     return this->content;
-}
-
-// Setter for content
-void Message::setContent(const string &cntnt)
-{
-    this->content = cntnt;
 }
 
 // Static member function to get total messages count
@@ -202,12 +186,12 @@ private:
     vector<Message> messages;
 
 public:
-    ChatHistory();
+    ChatHistory(); // Default constructor
     void addMessage(const Message &message);
     vector<Message> getMessages() const;
 };
 
-// Constructor for ChatHistory
+// Default constructor for ChatHistory
 ChatHistory::ChatHistory() {}
 
 void ChatHistory::addMessage(const Message &message)
@@ -230,7 +214,7 @@ private:
 
 public:
     ChatHistory chatHistory;
-    ChatApp();
+    ChatApp(); // Default constructor
     ~ChatApp(); // Destructor to free memory
     void registerUser(User *user);
     bool loginUser(string uname, string pwd);
@@ -372,55 +356,27 @@ void ChatApp::printUsers() const
 
 int main()
 {
-    ChatApp chatApp;
+    ChatApp app;
 
-    // Create Admin and Normal Users
-    User *admin = new Admin("admin", "adminpass", "adminkey123");
-    User *user1 = new NormalUser("user1", "password1");
-    User *user2 = new NormalUser("user2", "password2");
+    cout << "Registering users..." << endl;
+    app.registerUser(new Admin("badri", "badriPass", "heybadriekey"));
+    app.registerUser(new NormalUser("mohan", "mohanPass"));
+    app.registerUser(new NormalUser("ashok", "ashokPass"));
+    app.printUsers();
 
-    // Register Users
-    chatApp.registerUser(admin);
-    chatApp.registerUser(user1);
-    chatApp.registerUser(user2);
-
-    // Print initial user info
-    chatApp.printUsers();
-
-    // Admin logs in and views all users
-    if (chatApp.loginUser("admin", "adminpass"))
+    cout << "Logging in as admin..." << endl;
+    if (app.loginUser("badri", "badriPass"))
     {
-        chatApp.viewAllUsers();
-        chatApp.logoutUser();
+        cout << "Logged in successfully!" << endl;
     }
 
-    // User1 logs in and sends a message to User2
-    if (chatApp.loginUser("user1", "password1"))
-    {
-        chatApp.sendMessage("user2", "Hello, User2!");
-        chatApp.logoutUser();
-    }
+    app.viewAllUsers();
 
-    // User2 logs in and sends a message back to User1
-    if (chatApp.loginUser("user2", "password2"))
-    {
-        chatApp.sendMessage("user1", "Hi, User1! How are you?");
-        chatApp.logoutUser();
-    }
+    cout << "Deleting user 'ashok'..." << endl;
+    app.deleteUser("ashok");
+    app.viewAllUsers();
 
-    // Show chat history between User1 and User2
-    chatApp.showChatHistory("user1", "user2");
-
-    // Admin logs in and deletes User1
-    if (chatApp.loginUser("admin", "adminpass"))
-    {
-        chatApp.deleteUser("user1");
-        chatApp.viewAllUsers();
-        chatApp.logoutUser();
-    }
-
-    // Final user and message statistics
-    chatApp.printUsers();
-
+    cout << "Logging out..." << endl;
+    app.logoutUser();
     return 0;
 }
