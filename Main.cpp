@@ -4,7 +4,6 @@
 #include <algorithm>
 using namespace std;
 
-// Base User Class
 class User
 {
 protected:
@@ -13,33 +12,32 @@ protected:
     bool isLoggedIn;
 
 public:
-    static int userCount; // Static variable to track number of users
-    User(); // Default constructor
+    static int userCount;
+    User();
     User(string uname, string pwd);
-    ~User();
-    bool login(string pwd);
-    void logout();
+    virtual ~User();
+
+    virtual bool login(string pwd);
+    virtual void logout();
     string getUsername() const;
     bool isLoggedInStatus() const;
-    static int getUserCount(); // Static member function to get user count
+    static int getUserCount();
 };
 
-// Initialize static variable
 int User::userCount = 0;
 
-// Default constructor for User
 User::User() : username(""), password(""), isLoggedIn(false)
 {
-    userCount++; // Increment user count whenever a new user is created
+    userCount++;
 }
 
-// Constructor for User with parameters
 User::User(string uname, string pwd) : username(uname), password(pwd), isLoggedIn(false)
 {
-    userCount++; // Increment user count whenever a new user is created
+    userCount++;
 }
 
 User::~User() {}
+
 bool User::login(string pwd)
 {
     if (this->password == pwd)
@@ -65,46 +63,51 @@ bool User::isLoggedInStatus() const
     return isLoggedIn;
 }
 
-// Static member function to get user count
 int User::getUserCount()
 {
     return userCount;
 }
 
-// Derived NormalUser Class
 class NormalUser : public User
 {
 public:
-    NormalUser(); // Default constructor
+    NormalUser();
     NormalUser(string uname, string pwd);
     ~NormalUser() {}
 };
 
-// Default constructor for NormalUser
 NormalUser::NormalUser() : User() {}
 
-// Constructor for NormalUser with parameters
 NormalUser::NormalUser(string uname, string pwd) : User(uname, pwd) {}
 
-// Derived Admin Class
 class Admin : public User
 {
 private:
     string adminKey;
 
 public:
-    Admin(); // Default constructor
+    Admin();
     Admin(string uname, string pwd, string AdminKey);
     ~Admin() {}
+
+    bool login(string pwd) override;
     void viewAllUsers(const vector<User *> &users) const;
-    void deleteUser(vector<User *> &users, const string &username); // Delete a user
+    void deleteUser(vector<User *> &users, const string &username);
 };
 
-// Default constructor for Admin
 Admin::Admin() : User(), adminKey("") {}
 
-// Constructor for Admin with parameters
 Admin::Admin(string uname, string pwd, string AdminKey) : User(uname, pwd), adminKey(AdminKey) {}
+
+bool Admin::login(string pwd)
+{
+    if (this->password == pwd && !adminKey.empty())
+    {
+        this->isLoggedIn = true;
+        return true;
+    }
+    return false;
+}
 
 void Admin::viewAllUsers(const vector<User *> &users) const
 {
@@ -118,17 +121,57 @@ void Admin::deleteUser(vector<User *> &users, const string &username)
 {
     auto it = remove_if(users.begin(), users.end(), [&](User *user)
                         {
-                            if (user->getUsername() == username) {
-                                delete user; // Free memory
-                                userCount--; // Decrement user count when a user is deleted
-                                return true;
-                            }
-                            return false;
-                        });
+        if (user->getUsername() == username) {
+            delete user;
+            userCount--;
+            return true;
+        }
+        return false; });
     users.erase(it, users.end());
 }
 
-// Message Class
+class PremiumUser : public NormalUser
+{
+private:
+    int subscriptionLevel;
+
+public:
+    PremiumUser();
+    PremiumUser(string uname, string pwd, int subLevel);
+    ~PremiumUser() {}
+
+    void setSubscriptionLevel(int level);
+    int getSubscriptionLevel() const;
+    void accessPremiumContent() const;
+};
+
+PremiumUser::PremiumUser() : NormalUser(), subscriptionLevel(0) {}
+
+PremiumUser::PremiumUser(string uname, string pwd, int subLevel)
+    : NormalUser(uname, pwd), subscriptionLevel(subLevel) {}
+
+void PremiumUser::setSubscriptionLevel(int level)
+{
+    this->subscriptionLevel = level;
+}
+
+int PremiumUser::getSubscriptionLevel() const
+{
+    return this->subscriptionLevel;
+}
+
+void PremiumUser::accessPremiumContent() const
+{
+    if (subscriptionLevel > 0)
+    {
+        cout << getUsername() << " is accessing premium content with subscription level " << subscriptionLevel << endl;
+    }
+    else
+    {
+        cout << getUsername() << " does not have a valid subscription." << endl;
+    }
+}
+
 class Message
 {
 private:
@@ -137,25 +180,22 @@ private:
     string content;
 
 public:
-    static int totalMessages; // Static variable to track total number of messages
-    Message(); // Default constructor
+    static int totalMessages;
+    Message();
     Message(string sndr, string rcvr, string cntnt);
     string getSender() const;
     string getReceiver() const;
     string getContent() const;
-    static int getTotalMessages(); // Static member function to get total messages count
+    static int getTotalMessages();
 };
 
-// Initialize static variable
 int Message::totalMessages = 0;
 
-// Default constructor for Message
 Message::Message() : sender(""), receiver(""), content("") {}
 
-// Constructor for Message with parameters
 Message::Message(string sndr, string rcvr, string cntnt) : sender(sndr), receiver(rcvr), content(cntnt)
 {
-    totalMessages++; // Increment message count whenever a new message is created
+    totalMessages++;
 }
 
 string Message::getSender() const
@@ -173,25 +213,22 @@ string Message::getContent() const
     return this->content;
 }
 
-// Static member function to get total messages count
 int Message::getTotalMessages()
 {
     return totalMessages;
 }
 
-// ChatHistory Class
 class ChatHistory
 {
 private:
     vector<Message> messages;
 
 public:
-    ChatHistory(); // Default constructor
+    ChatHistory();
     void addMessage(const Message &message);
     vector<Message> getMessages() const;
 };
 
-// Default constructor for ChatHistory
 ChatHistory::ChatHistory() {}
 
 void ChatHistory::addMessage(const Message &message)
@@ -204,8 +241,6 @@ vector<Message> ChatHistory::getMessages() const
     return this->messages;
 }
 
-//-----------------------------------------------------------------------------
-// ChatApp Class
 class ChatApp
 {
 private:
@@ -214,28 +249,26 @@ private:
 
 public:
     ChatHistory chatHistory;
-    ChatApp(); // Default constructor
-    ~ChatApp(); // Destructor to free memory
+    ChatApp();
+    ~ChatApp();
     void registerUser(User *user);
     bool loginUser(string uname, string pwd);
     void logoutUser();
     User *findUserByUsername(const string &uname);
     void sendMessage(const string &receiver, const string &content);
     void showChatHistory(const string &user1, const string &user2) const;
-    void printUsers() const; // New method to print user details
+    void printUsers() const;
     void deleteUser(const string &uname);
     void viewAllUsers() const;
 };
 
-// Constructor for ChatApp
 ChatApp::ChatApp() : currentUser(nullptr) {}
 
-// Destructor for ChatApp
 ChatApp::~ChatApp()
 {
     for (User *user : users)
     {
-        delete user; // Free the memory allocated for each user
+        delete user;
     }
 }
 
@@ -349,34 +382,41 @@ void ChatApp::printUsers() const
     {
         cout << "- " << user->getUsername() << endl;
     }
-    cout << "Total Users: " << User::getUserCount() << endl; // Display total users using static member function
-    cout << "Total Messages Sent: " << Message::getTotalMessages() << endl; // Display total messages using static member function
-    cout << endl;
+    cout << "Total Users: " << User::getUserCount() << endl;
+    cout << "Total Messages Sent: " << Message::getTotalMessages() << endl;
 }
 
 int main()
 {
     ChatApp app;
 
-    cout << "Registering users..." << endl;
-    app.registerUser(new Admin("badri", "badriPass", "heybadriekey"));
-    app.registerUser(new NormalUser("mohan", "mohanPass"));
-    app.registerUser(new NormalUser("ashok", "ashokPass"));
-    app.printUsers();
+    app.registerUser(new NormalUser("alice", "alice123"));
+    app.registerUser(new NormalUser("bob", "bob123"));
+    app.registerUser(new Admin("admin", "admin123", "adminKey"));
+    app.registerUser(new PremiumUser("charlie", "charlie123", 2)); // Premium user with subscription level 2
 
-    cout << "Logging in as admin..." << endl;
-    if (app.loginUser("badri", "badriPass"))
+    if (app.loginUser("charlie", "charlie123"))
     {
-        cout << "Logged in successfully!" << endl;
+        cout << "Charlie (Premium User) logged in!" << endl;
+        PremiumUser *premium = dynamic_cast<PremiumUser *>(app.findUserByUsername("charlie"));
+        if (premium)
+        {
+            premium->accessPremiumContent(); // Access premium content
+        }
+        app.logoutUser();
     }
 
-    app.viewAllUsers();
+    if (app.loginUser("admin", "admin123"))
+    {
+        cout << "Admin logged in!" << endl;
+        app.viewAllUsers();
+        app.deleteUser("bob");
+        app.logoutUser();
+    }
 
-    cout << "Deleting user 'ashok'..." << endl;
-    app.deleteUser("ashok");
-    app.viewAllUsers();
+    app.showChatHistory("alice", "bob");
 
-    cout << "Logging out..." << endl;
-    app.logoutUser();
+    app.printUsers();
+
     return 0;
 }
