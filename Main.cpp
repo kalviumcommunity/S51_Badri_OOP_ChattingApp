@@ -17,8 +17,8 @@ public:
     User(string uname, string pwd);
     virtual ~User();
 
-    virtual bool login(string pwd);
-    virtual void logout();
+    virtual bool login(string pwd) = 0; 
+    virtual void logout() = 0;         
     string getUsername() const;
     bool isLoggedInStatus() const;
     static int getUserCount();
@@ -37,21 +37,6 @@ User::User(string uname, string pwd) : username(uname), password(pwd), isLoggedI
 }
 
 User::~User() {}
-
-bool User::login(string pwd)
-{
-    if (this->password == pwd)
-    {
-        this->isLoggedIn = true;
-        return true;
-    }
-    return false;
-}
-
-void User::logout()
-{
-    this->isLoggedIn = false;
-}
 
 string User::getUsername() const
 {
@@ -74,11 +59,29 @@ public:
     NormalUser();
     NormalUser(string uname, string pwd);
     ~NormalUser() {}
+
+    bool login(string pwd) override; 
+    void logout() override;          
 };
 
 NormalUser::NormalUser() : User() {}
 
 NormalUser::NormalUser(string uname, string pwd) : User(uname, pwd) {}
+
+bool NormalUser::login(string pwd)
+{
+    if (this->password == pwd)
+    {
+        this->isLoggedIn = true;
+        return true;
+    }
+    return false;
+}
+
+void NormalUser::logout()
+{
+    this->isLoggedIn = false;
+}
 
 class Admin : public User
 {
@@ -90,7 +93,8 @@ public:
     Admin(string uname, string pwd, string AdminKey);
     ~Admin() {}
 
-    bool login(string pwd) override;
+    bool login(string pwd) override;  
+    void logout() override;             
     void viewAllUsers(const vector<User *> &users) const;
     void deleteUser(vector<User *> &users, const string &username);
 };
@@ -107,6 +111,11 @@ bool Admin::login(string pwd)
         return true;
     }
     return false;
+}
+
+void Admin::logout()
+{
+    this->isLoggedIn = false;
 }
 
 void Admin::viewAllUsers(const vector<User *> &users) const
@@ -382,41 +391,40 @@ void ChatApp::printUsers() const
     {
         cout << "- " << user->getUsername() << endl;
     }
-    cout << "Total Users: " << User::getUserCount() << endl;
-    cout << "Total Messages Sent: " << Message::getTotalMessages() << endl;
 }
 
 int main()
 {
-    ChatApp app;
+    ChatApp chatApp;
 
-    app.registerUser(new NormalUser("alice", "alice123"));
-    app.registerUser(new NormalUser("bob", "bob123"));
-    app.registerUser(new Admin("admin", "admin123", "adminKey"));
-    app.registerUser(new PremiumUser("charlie", "charlie123", 2)); // Premium user with subscription level 2
+    NormalUser *user1 = new NormalUser("user1", "password1");
+    Admin *admin1 = new Admin("admin1", "adminpass", "adminkey123");
+    PremiumUser *premiumUser1 = new PremiumUser("premiumUser1", "premiumPassword", 2);
 
-    if (app.loginUser("charlie", "charlie123"))
+    chatApp.registerUser(user1);
+    chatApp.registerUser(admin1);
+    chatApp.registerUser(premiumUser1);
+
+    if (chatApp.loginUser("admin1", "adminpass"))
     {
-        cout << "Charlie (Premium User) logged in!" << endl;
-        PremiumUser *premium = dynamic_cast<PremiumUser *>(app.findUserByUsername("charlie"));
-        if (premium)
-        {
-            premium->accessPremiumContent(); // Access premium content
-        }
-        app.logoutUser();
+        chatApp.viewAllUsers();
     }
 
-    if (app.loginUser("admin", "admin123"))
+    chatApp.sendMessage("user1", "Hello user1!");
+
+    if (chatApp.loginUser("user1", "password1"))
     {
-        cout << "Admin logged in!" << endl;
-        app.viewAllUsers();
-        app.deleteUser("bob");
-        app.logoutUser();
+        chatApp.sendMessage("admin1", "Hello admin!");
+        chatApp.logoutUser();
     }
 
-    app.showChatHistory("alice", "bob");
+    chatApp.showChatHistory("admin1", "user1");
 
-    app.printUsers();
+    if (chatApp.loginUser("admin1", "adminpass"))
+    {
+        chatApp.deleteUser("user1");
+        chatApp.viewAllUsers();
+    }
 
     return 0;
 }
