@@ -4,6 +4,8 @@
 #include <algorithm>
 using namespace std;
 
+
+//For Single Responsibility Principal
 class User
 {
 protected:
